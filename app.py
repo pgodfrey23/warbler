@@ -217,8 +217,8 @@ def profile():
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    user = User.query.get_or_404(g.user.id)
-    form = UpdateUser(obj=user)
+    # user = User.query.get_or_404(g.user.id)
+    form = UpdateUser(obj=g.user)
     
     if form.validate_on_submit():
         username = form.username.data
@@ -241,7 +241,7 @@ def profile():
             return redirect(f'/users/{g.user.id}')
 
         flash("Incorrect password.", "danger")
-        return redirect("/")
+        # return redirect("/")
 
     return render_template('/users/edit.html', form=form)
 
@@ -321,17 +321,16 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-    following = db.session.query(Follows.user_being_followed_id).filter(Follows.user_following_id == g.user.id)
-    print('following ##########', following)
     
     if g.user:
+        following_ids = [f.id for f in g.user.following] + [g.user.id]
         messages = (Message
                     .query
-                    .filter(Message.user_id.in_(following))
+                    .filter(Message.user_id.in_(following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
-                    )
-        print(messages)
+                    .all())
+        
         return render_template('home.html', messages=messages)
 
     else:
