@@ -336,6 +336,22 @@ def homepage():
     else:
         return render_template('home-anon.html')
 
+@app.route('/like/<int:msg_id>', methods=["POST"])
+def like_message(msg_id):
+    """Processes liked message form user home page."""
+    
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    liked_message = Message.query.get_or_404(msg_id)
+    g.user.message_likes.append(liked_message)
+    db.session.commit()
+
+    return redirect("/")
+
+
+
 
 ##############################################################################
 # Turn off all caching in Flask
