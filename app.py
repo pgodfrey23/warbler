@@ -39,19 +39,21 @@ def add_user_to_g():
     else:
         g.user = None
 
-
+@app.route('/login')
 def do_login(user):
     """Log in user."""
 
     session[CURR_USER_KEY] = user.id
+    return 'working'
 
-
+@app.route('/logout')
 def do_logout():
     """Logout user."""
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
-
+        flash('You are now logged out')
+        return redirect('/login')
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
