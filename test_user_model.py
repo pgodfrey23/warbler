@@ -38,8 +38,23 @@ class UserModelTestCase(TestCase):
         User.query.delete()
         Message.query.delete()
         Follows.query.delete()
-
+        
         self.client = app.test_client()
+        user1 = User(
+            email="test1@test.com",
+            username="testuser1",
+            password="HASHED_PASSWORD"
+        )
+
+        user2 = User(
+            email="test2@test.com",
+            username="testuser2",
+            password="HASHED_PASSWORD"
+        )
+
+        db.session.add(user1)
+        db.session.add(user2)
+        db.session.commit()
 
     def test_user_model(self):
         """Does basic model work?"""
@@ -56,3 +71,45 @@ class UserModelTestCase(TestCase):
         # User should have no messages & no followers
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
+
+    def test_repr(self):
+        """Does the repr work."""
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+        # import pdb; pdb.set_trace()
+        self.assertEqual(user1.__repr__(), f"<User #{user1.id}: {user1.username}, {user1.email}>")
+        self.assertEqual(user2.__repr__(), f"<User #{user2.id}: {user2.username}, {user2.email}>")
+
+    def test_following(self):
+        """Test user1 is following user2 """
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+
+        user1.following.append(user2)
+        db.session.commit()
+
+        self.assertIn(user2, user1.following)
+
+    def test_not_following(self):
+        """Test user1 is not following user2."""
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+
+        self.assertNotIn(user2, user1.following)
+
+    def test_is_followed_by(self):
+        """Test user1 is followed by user2."""
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+
+        user1.followers.append(user2)
+        db.session.commit()
+
+        self.assertIn(user2, user1.followers)
+
+    def test_is_not_followed_by(self):
+        """Test user1 is not followed by user2."""
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+
+        self.assertNotIn(user2, user1.followers)
