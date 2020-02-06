@@ -53,14 +53,17 @@
             </div>
           </li>
           <div class="ml-auto" id="likes-container">
-            {% if g.user.likes_message(msg.id) %}
-            <form action="/unlike/{{msg.id}}" method="POST">
-              <button><i class="fas fa-thumbs-up">Like</i></button>
-            </form>
-            {% else %}
-            <form action="/like/{{msg.id}}" method="POST">
-              <button><i class="far fa-thumbs-up">Like</i></button>
-            </form>
+            
+            {% if user.id != msg.user.id %}
+              {% if user.likes_message(msg.id) %}
+              <form action="/unlike/{{msg.id}}" method="POST">
+                <button><i class="fas fa-thumbs-up">Like</i></button>
+              </form>
+              {% else %}
+              <form action="/like/{{msg.id}}" method="POST">
+                <button><i class="far fa-thumbs-up">Like</i></button>
+              </form>
+              {% endif %}
             {% endif %}
           </div>
         {% endfor %}

@@ -155,6 +155,25 @@ def users_show(user_id):
     return render_template('users/show.html', user=user, messages=messages)
 
 
+@app.route('/users/<int:user_id>/likes')
+def show_likes(user_id):
+    """Show list of messages this user likes."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    liked_message_ids = [l.id for l in g.user.message_likes]
+    messages = (Message
+                .query
+                .filter(Message.id.in_(liked_message_ids))
+                .order_by(Message.timestamp.desc())
+                .limit(100)
+                .all())
+
+    return render_template('users/likes.html', user=user, messages=messages)
+
 @app.route('/users/<int:user_id>/following')
 def show_following(user_id):
     """Show list of people this user is following."""
@@ -323,6 +342,7 @@ def homepage():
     """
     
     if g.user:
+        user = g.user
         following_ids = [f.id for f in g.user.following] + [g.user.id]
         messages = (Message
                     .query
@@ -331,7 +351,7 @@ def homepage():
                     .limit(100)
                     .all())
         
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, user=user)
 
     else:
         return render_template('home-anon.html')
@@ -363,7 +383,6 @@ def unlike_message(msg_id):
     db.session.commit()
 
     return redirect("/")
-
 
 ##############################################################################
 # Turn off all caching in Flask
