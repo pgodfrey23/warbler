@@ -92,8 +92,23 @@ class MessageViewTestCase(TestCase):
             self.assertNotIn('Hello', html)
             self.assertEqual(len(Message.query.all()), 0)
 
-        # When you’re logged out, are you prohibited from adding messages?
-        # When you’re logged out, are you prohibited from deleting messages?
+    def test_add_message_logged_out(self):
+        """When you’re logged out, are you prohibited from adding messages?"""
+
+        resp = self.client.get("/messages/new", follow_redirects=True)
+        html = resp.get_data(as_text=True)
+
+        self.assertIn("Access unauthorized.", html)
+            
+    def test_delete_message_logged_out(self):
+        """When you’re logged out, are you prohibited from deleting messages?"""
+
+        message = Message.query.all()[0]
+        resp = self.client.post(f"/messages/{message.id}/delete", follow_redirects=True)
+        html = resp.get_data(as_text=True)
+
+        self.assertIn("Access unauthorized.", html)
+
         # When you’re logged in, are you prohibiting from adding a message as another user?
         # When you’re logged in, are you prohibiting from deleting a message as another user?
 
