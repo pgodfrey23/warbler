@@ -95,14 +95,14 @@ class UserModelTestCase(TestCase):
         user1.following.append(user2)
         db.session.commit()
 
-        self.assertIn(user2, user1.following)
+        self.assertTrue(user1.is_following(user2))
 
     def test_not_following(self):
         """Test user1 is not following user2."""
         user1 = User.query.filter(User.email == "test1@test.com").all()[0]
         user2 = User.query.filter(User.email == "test2@test.com").all()[0]
 
-        self.assertNotIn(user2, user1.following)
+        self.assertFalse(user1.is_following(user2))
 
     def test_is_followed_by(self):
         """Test user1 is followed by user2."""
@@ -112,14 +112,14 @@ class UserModelTestCase(TestCase):
         user1.followers.append(user2)
         db.session.commit()
 
-        self.assertIn(user2, user1.followers)
+        self.assertTrue(user1.is_followed_by(user2))
 
     def test_is_not_followed_by(self):
         """Test user1 is not followed by user2."""
         user1 = User.query.filter(User.email == "test1@test.com").all()[0]
         user2 = User.query.filter(User.email == "test2@test.com").all()[0]
 
-        self.assertNotIn(user2, user1.followers)
+        self.assertFalse(user1.is_followed_by(user2))
 
     def test_user_create_success(self):
         """Test User.signup successfully creates a new user givev valid credentials."""
