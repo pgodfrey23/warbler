@@ -66,8 +66,8 @@ class MessageModelTestCase(TestCase):
 
         db.session.rollback()
 
-    def test_user_model(self):
-        """Does basic model work - is newly created message in the database"""
+    def test_message_model(self):
+        """Does basic model work?"""
 
         user1 = User.query.filter(User.email == "test1@test.com").all()[0]
 
@@ -79,6 +79,6 @@ class MessageModelTestCase(TestCase):
         db.session.add(m)
         db.session.commit()
 
+        self.assertTrue(m)
         self.assertIn(m, Message.query.all())
-    
     
