@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, User, Message, Follows
+from models import db, User, Message, Follows, Like
 
 from sqlalchemy.exc import IntegrityError
 
@@ -39,6 +39,7 @@ class UserModelTestCase(TestCase):
         User.query.delete()
         Message.query.delete()
         Follows.query.delete()
+        Like.query.delete()
 
         self.client = app.test_client()
 
@@ -120,6 +121,52 @@ class UserModelTestCase(TestCase):
         user2 = User.query.filter(User.email == "test2@test.com").all()[0]
 
         self.assertFalse(user1.is_followed_by(user2))
+
+
+    def test_message_liked(self):
+        """ Test user likes message."""
+
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+
+        # message written by user1
+        message_1 = Message(
+            text="test1_message",
+            user_id=user1.id  
+        )
+
+        db.session.add(message_1)
+        db.session.commit()
+
+        # get message_1 from messages table
+        message = Message.query.limit(1).all()[0]
+
+        # user2 likes message
+        like = Like(user_id=user2.id, message_id=message.id)
+        db.session.add(like)
+        db.session.commit()
+
+        self.assertTrue(user2.likes_message(message.id))
+
+    def test_message_not_liked(self):
+        """ Test user does not like message."""
+
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+
+        # message written by user1
+        message_1 = Message(
+            text="test1_message",
+            user_id=user1.id  
+        )
+
+        db.session.add(message_1)
+        db.session.commit()
+
+        # get message_1 from messages table
+        message = Message.query.limit(1).all()[0]
+
+        self.assertFalse(user2.likes_message(message.id))
 
     def test_user_create_success(self):
         """Test User.signup successfully creates a new user givev valid credentials."""
