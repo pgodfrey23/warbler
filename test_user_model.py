@@ -1,8 +1,8 @@
 """User model tests."""
 
 # run these tests like:
-#
-#    python -m unittest test_user_model.py
+# 
+# FLASK_ENV=production python -m unittest test_user_model.py
 
 
 import os
@@ -40,14 +40,15 @@ class UserModelTestCase(TestCase):
         User.query.delete()
         Message.query.delete()
         Follows.query.delete()
-        
+
         self.client = app.test_client()
+
         user1 = User(
             email="test1@test.com",
             username="testuser1",
             password="HASHED_PASSWORD1"
         )
-        
+
         user2 = User(
             email="test2@test.com",
             username="testuser2",
@@ -130,9 +131,10 @@ class UserModelTestCase(TestCase):
             password="TEST_PASSWORD",
             image_url=User.image_url.default.arg
         )
+
         db.session.add(user3)
         db.session.commit()
-        
+
         user = User.query.filter(User.email == "test3@test.com").all()[0]
 
         self.assertIn(user, User.query.all())
@@ -148,10 +150,10 @@ class UserModelTestCase(TestCase):
             )
 
             db.session.commit()
-    
+
     def test_user_authenticate_success(self):
-        """Successfully return a user when given valid username and password"""
-        # import pdb; pdb.set_trace()
+        """Successfully return a user when given valid username and password."""
+
         unhashed_password = "TEST_PASSWORD"
         user3_signup = User.signup(
             email="test3@test.com",
@@ -159,11 +161,51 @@ class UserModelTestCase(TestCase):
             password=unhashed_password,
             image_url=User.image_url.default.arg
         )
-        
+
         db.session.add(user3_signup)
         db.session.commit()
-        
+
         user3 = User.query.filter(User.email == "test3@test.com").all()[0]
         user = User.authenticate(user3.username, unhashed_password)
 
         self.assertEquals(user3, user)
+
+    def test_user_authenticate_invalid_username(self):
+        """Fail to return a user when given invalid username."""
+
+        unhashed_password = "TEST_PASSWORD"
+        
+        user3_signup = User.signup(
+            email="test3@test.com",
+            username="testuser3",
+            password=unhashed_password,
+            image_url=User.image_url.default.arg
+        )
+
+        db.session.add(user3_signup)
+        db.session.commit()
+
+        user3 = User.query.filter(User.email == "test3@test.com").all()[0]
+        user = User.authenticate('wrong_username', unhashed_password)
+
+        self.assertFalse(user)
+    
+    def test_user_authenticate_invalid_password(self):
+        """Fail to return a user when given invalid password."""
+
+        unhashed_password = "TEST_PASSWORD"
+
+        user3_signup = User.signup(
+            email="test3@test.com",
+            username="testuser3",
+            password=unhashed_password,
+            image_url=User.image_url.default.arg
+        )
+
+        db.session.add(user3_signup)
+        db.session.commit()
+
+        user3 = User.query.filter(User.email == "test3@test.com").all()[0]
+        user = User.authenticate(user3.username, 'wrong_password')
+
+        self.assertFalse(user)
