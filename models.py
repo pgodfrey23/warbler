@@ -110,9 +110,9 @@ class User(db.Model):
         return len(found_user_list) == 1
 
     def likes_message(self, message_id):
-        """Does the user like this `message_id`? """
+        """Does the user like `message_id`? """
         
-        liked_message_list = [msg for msg in self.message_likes if msg == message_id]
+        liked_message_list = [msg for msg in self.message_likes if msg.id == message_id]
         return len(liked_message_list) == 1
 
     @classmethod

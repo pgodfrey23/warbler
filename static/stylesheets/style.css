@@ -283,10 +283,6 @@ nav + .container {
   background-color: #e6ecf0;
 }
 
-button .liked {
-  background-color: blue;
-}
-
 #sidebar-username {
   margin-top: 30px;
   font-size: 21px;
