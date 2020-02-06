@@ -52,6 +52,7 @@ def do_logout():
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
+
         flash('You are now logged out')
         return redirect('/login')
 
@@ -111,11 +112,11 @@ def login():
     return render_template('users/login.html', form=form)
 
 
-@app.route('/logout')
-def logout():
-    """Handle logout of user."""
+# @app.route('/logout')
+# def logout():
+#     """Handle logout of user."""
 
-    # IMPLEMENT THIS
+#     # IMPLEMENT THIS
 
 
 ##############################################################################
@@ -262,7 +263,7 @@ def profile():
         flash("Incorrect password.", "danger")
         # return redirect("/")
 
-    return render_template('/users/edit.html', form=form)
+    return render_template('/users/edit.html', form=form, user=g.user)
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():

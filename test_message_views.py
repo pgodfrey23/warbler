@@ -48,26 +48,52 @@ class MessageViewTestCase(TestCase):
                                     email="test@test.com",
                                     password="testuser",
                                     image_url=None)
-
         db.session.commit()
 
-    def test_add_message(self):
-        """Can use add a message?"""
+        user = User.query.filter(User.email == "test@test.com").all()[0]
+        self.testmessage = Message(text="test message", user_id=user.id)
 
-        # Since we need to change the session to mimic logging in,
-        # we need to use the changing-session trick:
+        db.session.add(self.testmessage)
+        db.session.commit()
+
+    def tearDown(self):
+        """Clean up fouled transactions."""
+
+        db.session.rollback()
+
+    def test_add_message(self):
+        """When you’re logged in, can you add a message as yourself?"""
 
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            # Now, that session setting is saved, so we can have
-            # the rest of ours test
-
             resp = c.post("/messages/new", data={"text": "Hello"})
-
-            # Make sure it redirects
             self.assertEqual(resp.status_code, 302)
 
-            msg = Message.query.one()
+            # pick up created message - ([0] message created in setUp)
+            msg = Message.query.all()[1]
             self.assertEqual(msg.text, "Hello")
+    
+    def test_delete_message(self):
+        """When you’re logged in, can you delete a message as yourself?"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            # confirm message is in the databse before deletion - from setUp
+            self.assertEqual(len(Message.query.all()), 1)
+
+            message = Message.query.all()[0]
+            resp = c.post(f"/messages/{message.id}/delete", follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertNotIn('Hello', html)
+            self.assertEqual(len(Message.query.all()), 0)
+
+        # When you’re logged out, are you prohibited from adding messages?
+        # When you’re logged out, are you prohibited from deleting messages?
+        # When you’re logged in, are you prohibiting from adding a message as another user?
+        # When you’re logged in, are you prohibiting from deleting a message as another user?
+
