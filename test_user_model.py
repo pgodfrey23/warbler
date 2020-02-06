@@ -10,6 +10,8 @@ from unittest import TestCase
 
 from models import db, User, Message, Follows
 
+from sqlalchemy.exc import IntegrityError
+
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
 # before we import our app, since that will have already
@@ -43,18 +45,23 @@ class UserModelTestCase(TestCase):
         user1 = User(
             email="test1@test.com",
             username="testuser1",
-            password="HASHED_PASSWORD"
+            password="HASHED_PASSWORD1"
         )
-
+        
         user2 = User(
             email="test2@test.com",
             username="testuser2",
-            password="HASHED_PASSWORD"
+            password="HASHED_PASSWORD2"
         )
 
         db.session.add(user1)
         db.session.add(user2)
         db.session.commit()
+
+    def tearDown(self):
+        """Clean up fouled transactions."""
+
+        db.session.rollback()
 
     def test_user_model(self):
         """Does basic model work?"""
@@ -113,3 +120,50 @@ class UserModelTestCase(TestCase):
         user2 = User.query.filter(User.email == "test2@test.com").all()[0]
 
         self.assertNotIn(user2, user1.followers)
+
+    def test_user_create_success(self):
+        """Test User.signup successfully creates a new user givev valid credentials."""
+
+        user3 = User.signup(
+            email="test3@test.com",
+            username="testuser3",
+            password="TEST_PASSWORD",
+            image_url=User.image_url.default.arg
+        )
+        db.session.add(user3)
+        db.session.commit()
+        
+        user = User.query.filter(User.email == "test3@test.com").all()[0]
+
+        self.assertIn(user, User.query.all())
+
+    def test_user_create_fail(self):
+        """Test User.signup fails if validation requirements not met. """
+        with self.assertRaises(IntegrityError):
+            User.signup(
+                email="test1@test.com",
+                username="testuser1",
+                password="TEST_PASSWORD",
+                image_url=User.image_url.default.arg
+            )
+
+            db.session.commit()
+    
+    def test_user_authenticate_success(self):
+        """Successfully return a user when given valid username and password"""
+        # import pdb; pdb.set_trace()
+        unhashed_password = "TEST_PASSWORD"
+        user3_signup = User.signup(
+            email="test3@test.com",
+            username="testuser3",
+            password=unhashed_password,
+            image_url=User.image_url.default.arg
+        )
+        
+        db.session.add(user3_signup)
+        db.session.commit()
+        
+        user3 = User.query.filter(User.email == "test3@test.com").all()[0]
+        user = User.authenticate(user3.username, unhashed_password)
+
+        self.assertEquals(user3, user)
