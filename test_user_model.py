@@ -19,7 +19,6 @@ from sqlalchemy.exc import IntegrityError
 
 os.environ['DATABASE_URL'] = "postgresql:///warbler-test"
 
-
 # Now we can import app
 
 from app import app
@@ -32,7 +31,7 @@ db.create_all()
 
 
 class UserModelTestCase(TestCase):
-    """Test views for messages."""
+    """Test User model."""
 
     def setUp(self):
         """Create test client, add sample data."""
