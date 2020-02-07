@@ -20,7 +20,7 @@
 
           <div class="ml-auto" id="likes-container">
             {% if login_user.id != message.user.id %}
-              {% if user.likes_message(message.id) %}
+              {% if login_user.likes_message(message.id) %}
                 <button><i class="fa-thumbs-up fas"></i></button>
               {% else %}
                 <button><i class="fa-thumbs-up far"></i></button>
