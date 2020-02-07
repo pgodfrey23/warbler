@@ -39,12 +39,12 @@ def add_user_to_g():
     else:
         g.user = None
 
-@app.route('/login')
-def do_login(user):
-    """Log in user."""
+# @app.route('/login')
+# def do_login(user):
+#     """Log in user."""
 
-    session[CURR_USER_KEY] = user.id
-    return 'working'
+#     session[CURR_USER_KEY] = user.id
+#     return 'working'
 
 @app.route('/logout')
 def do_logout():
@@ -103,7 +103,7 @@ def login():
                                  form.password.data)
 
         if user:
-            do_login(user)
+            session[CURR_USER_KEY] = user.id
             flash(f"Hello, {user.username}!", "success")
             return redirect("/")
 

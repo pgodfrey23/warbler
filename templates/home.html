@@ -51,21 +51,21 @@
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
             </div>
-          </li>
-          <div class="ml-auto" id="likes-container">
-            
-            {% if user.id != msg.user.id %}
-              {% if user.likes_message(msg.id) %}
-              <form action="/unlike/{{msg.id}}" method="POST">
-                <button><i class="fas fa-thumbs-up">Like</i></button>
-              </form>
-              {% else %}
-              <form action="/like/{{msg.id}}" method="POST">
-                <button><i class="far fa-thumbs-up">Like</i></button>
-              </form>
+            <div class="ml-auto" id="likes-container">
+              
+              {% if user.id != msg.user.id %}
+                {% if user.likes_message(msg.id) %}
+                <form action="/unlike/{{msg.id}}" method="POST">
+                  <button><i class="fas fa-thumbs-up">Like</i></button>
+                </form>
+                {% else %}
+                <form action="/like/{{msg.id}}" method="POST">
+                  <button><i class="far fa-thumbs-up">Like</i></button>
+                </form>
+                {% endif %}
               {% endif %}
-            {% endif %}
-          </div>
+            </div>
+          </li>
         {% endfor %}
       </ul>
     </div>

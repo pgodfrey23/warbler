@@ -195,7 +195,9 @@ nav + .container {
 .message-area {
   margin-left: 10px;
 }
-
+#likes-container {
+  z-index: 1;
+}
 #warbler-hero {
   height: 360px;
   margin-top: -16px;

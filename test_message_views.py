@@ -109,6 +109,14 @@ class MessageViewTestCase(TestCase):
 
         self.assertIn("Access unauthorized.", html)
 
-        # When you’re logged in, are you prohibiting from adding a message as another user?
-        # When you’re logged in, are you prohibiting from deleting a message as another user?
+    def test_add_message_as_other_user(self):
+        """When you’re logged in, are you prohibited from adding a message as another user?"""
 
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+        
+
+        """When you’re logged in, are you prohibited from deleting a message as another user?"""
+        
