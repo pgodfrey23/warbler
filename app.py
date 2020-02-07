@@ -39,22 +39,16 @@ def add_user_to_g():
     else:
         g.user = None
 
-# @app.route('/login')
-# def do_login(user):
-#     """Log in user."""
+def do_login(user):
+    """Log in user."""
 
-#     session[CURR_USER_KEY] = user.id
-#     return 'working'
+    session[CURR_USER_KEY] = user.id
 
-@app.route('/logout')
 def do_logout():
     """Logout user."""
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
-
-        flash('You are now logged out')
-        return redirect('/login')
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -103,7 +97,7 @@ def login():
                                  form.password.data)
 
         if user:
-            session[CURR_USER_KEY] = user.id
+            do_login(user)
             flash(f"Hello, {user.username}!", "success")
             return redirect("/")
 
@@ -112,11 +106,14 @@ def login():
     return render_template('users/login.html', form=form)
 
 
-# @app.route('/logout')
-# def logout():
-#     """Handle logout of user."""
+@app.route('/logout')
+def logout():
+    """Handle logout of user."""
 
-#     # IMPLEMENT THIS
+    do_logout()
+
+    flash('You are now logged out')
+    return redirect('/login')
 
 
 ##############################################################################
@@ -153,10 +150,10 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    return render_template('users/show.html', user=user, messages=messages)
+    return render_template('users/show.html', login_user=g.user, user=user, messages=messages)
 
 
-@app.route('/users/<int:user_id>/likes')
+@app.route('/users/<int:user_id>/likes', methods=['GET', 'POST'])
 def show_likes(user_id):
     """Show list of messages this user likes."""
 
