@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = 'https://r14-warbler-p-n.herokuapp.com';
 const $likeButton = $('.fa-thumbs-up');
 
 $likeButton.on('click', async function (evt) {
