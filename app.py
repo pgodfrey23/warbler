@@ -338,7 +338,7 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-    
+    form = MessageForm()
     if g.user:
         user = g.user
         following_ids = [f.id for f in g.user.following] + [g.user.id]
@@ -349,7 +349,7 @@ def homepage():
                     .limit(100)
                     .all())
         
-        return render_template('home.html', messages=messages, user=user)
+        return render_template('home.html', messages=messages, user=user, form=form)
 
     else:
         return render_template('home-anon.html')
