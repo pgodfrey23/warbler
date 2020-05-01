@@ -27,6 +27,28 @@ class Follows(db.Model):
     )
 
 
+class Likes(db.Model):
+    """Mapping user likes to warbles."""
+
+    __tablename__ = 'likes' 
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='cascade')
+    )
+
+    message_id = db.Column(
+        db.Integer,
+        db.ForeignKey('messages.id', ondelete='cascade'),
+        unique=True
+    )
+
+
 class User(db.Model):
     """User in the system."""
 
@@ -88,10 +110,9 @@ class User(db.Model):
         secondaryjoin=(Follows.user_being_followed_id == id)
     )
 
-    message_likes = db.relationship(
-        "Message",
-        secondary='likes',
-        backref='liked_by'
+    likes = db.relationship(
+        'Message',
+        secondary="likes"
     )
 
     def __repr__(self):
@@ -108,12 +129,6 @@ class User(db.Model):
 
         found_user_list = [user for user in self.following if user == other_user]
         return len(found_user_list) == 1
-
-    def likes_message(self, message_id):
-        """Does the user like `message_id`? """
-        
-        liked_message_list = [msg for msg in self.message_likes if msg.id == message_id]
-        return len(liked_message_list) == 1
 
     @classmethod
     def signup(cls, username, email, password, image_url):
@@ -184,10 +199,6 @@ class Message(db.Model):
 
     user = db.relationship('User')
 
-    def __repr__(self):
-        return f"<Message #{self.id}: {self.text}, {self.user_id}>"
-
-
 
 def connect_db(app):
     """Connect this database to provided Flask app.
@@ -197,20 +208,3 @@ def connect_db(app):
 
     db.app = app
     db.init_app(app)
-
-
-class Like(db.Model):
-    
-    __tablename__ = 'likes'
-
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete="cascade"),
-        primary_key=True,
-    )
-
-    message_id = db.Column(
-        db.Integer,
-        db.ForeignKey('messages.id', ondelete="cascade"),
-        primary_key=True,
-    )

@@ -4,8 +4,8 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm, UpdateUser
-from models import db, connect_db, User, Message, Follows
+from forms import UserAddForm, UserEditForm, LoginForm, MessageForm
+from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
 
@@ -39,16 +39,19 @@ def add_user_to_g():
     else:
         g.user = None
 
+
 def do_login(user):
     """Log in user."""
 
     session[CURR_USER_KEY] = user.id
+
 
 def do_logout():
     """Logout user."""
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
+
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -61,7 +64,8 @@ def signup():
     If the there already is a user with that username: flash message
     and re-present form.
     """
-
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
     form = UserAddForm()
 
     if form.validate_on_submit():
@@ -74,7 +78,7 @@ def signup():
             )
             db.session.commit()
 
-        except IntegrityError:
+        except IntegrityError as e:
             flash("Username already taken", 'danger')
             return render_template('users/signup.html', form=form)
 
@@ -112,8 +116,8 @@ def logout():
 
     do_logout()
 
-    flash('You are now logged out')
-    return redirect('/login')
+    flash("You have successfully logged out.", 'success')
+    return redirect("/login")
 
 
 ##############################################################################
@@ -141,7 +145,6 @@ def users_show(user_id):
     """Show user profile."""
 
     user = User.query.get_or_404(user_id)
-
     # snagging messages in order from the database;
     # user.messages won't be in order by default
     messages = (Message
@@ -150,27 +153,8 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    return render_template('users/show.html', login_user=g.user, user=user, messages=messages)
+    return render_template('users/show.html', user=user, messages=messages)
 
-
-@app.route('/users/<int:user_id>/likes', methods=['GET', 'POST'])
-def show_likes(user_id):
-    """Show list of messages this user likes."""
-
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
-    user = User.query.get_or_404(user_id)
-    liked_message_ids = [l.id for l in g.user.message_likes]
-    messages = (Message
-                .query
-                .filter(Message.id.in_(liked_message_ids))
-                .order_by(Message.timestamp.desc())
-                .limit(100)
-                .all())
-
-    return render_template('users/likes.html', user=user, messages=messages)
 
 @app.route('/users/<int:user_id>/following')
 def show_following(user_id):
@@ -227,40 +211,31 @@ def stop_following(follow_id):
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
-def profile():
+def edit_profile():
     """Update profile for current user."""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    # user = User.query.get_or_404(g.user.id)
-    form = UpdateUser(obj=g.user)
-    
+    user = g.user
+    form = UserEditForm(obj=user)
+
     if form.validate_on_submit():
-        username = form.username.data
-        email = form.email.data
-        image_url = form.image_url.data
-        header_image_url = form.header_image_url.data
-        bio = form.bio.data
-        password = form.password.data
+        if User.authenticate(user.username, form.password.data):
+            user.username = form.username.data
+            user.email = form.email.data
+            user.image_url = form.image_url.data or "/static/images/default-pic.png"
+            user.header_image_url = form.header_image_url.data or "/static/images/warbler-hero.jpg"
+            user.bio = form.bio.data
 
-        if User.authenticate(user.username, password):
-            user.username = username
-            user.email = email
-            user.image_url = image_url
-            user.header_image_url = header_image_url
-            user.bio = bio
-
-            db.session.add(user)
             db.session.commit()
+            return redirect(f"/users/{user.id}")
 
-            return redirect(f'/users/{g.user.id}')
+        flash("Wrong password, please try again.", 'danger')
 
-        flash("Incorrect password.", "danger")
-        # return redirect("/")
+    return render_template('users/edit.html', form=form, user_id=user.id)
 
-    return render_template('/users/edit.html', form=form, user=g.user)
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
@@ -338,49 +313,29 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-    form = MessageForm()
+
     if g.user:
-        user = g.user
         following_ids = [f.id for f in g.user.following] + [g.user.id]
+
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-        
-        return render_template('home.html', messages=messages, user=user, form=form)
+
+        return render_template('home.html', messages=messages)
 
     else:
         return render_template('home-anon.html')
 
-@app.route('/like/<int:msg_id>', methods=["POST"])
-def like_message(msg_id):
-    """Processes liked message form user home page."""
-    
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
 
-    liked_message = Message.query.get_or_404(msg_id)
-    g.user.message_likes.append(liked_message)
-    db.session.commit()
+@app.errorhandler(404)
+def page_not_found(e):
+    """404 NOT FOUND page."""
 
-    return redirect("/")
+    return render_template('404.html'), 404
 
-@app.route('/unlike/<int:msg_id>', methods=["POST"])
-def unlike_message(msg_id):
-    """Processes liked message form user home page."""
-    
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
-    liked_message = Message.query.get_or_404(msg_id)
-    g.user.message_likes.remove(liked_message)
-    db.session.commit()
-
-    return redirect("/")
 
 ##############################################################################
 # Turn off all caching in Flask

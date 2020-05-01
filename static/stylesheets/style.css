@@ -196,14 +196,6 @@ nav + .container {
   margin-left: 10px;
 }
 
-#likes-container {
-  z-index: 1;
-}
-
-#likes-container button {
-  border: none
-}
-
 #warbler-hero {
   height: 360px;
   margin-top: -16px;
@@ -514,6 +506,13 @@ p.card-bio {
 
 #messages.no-hover .message-heading .btn {
   min-width: 105px;
+}
+
+.messages-like {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
 }
 
 .single-message {
