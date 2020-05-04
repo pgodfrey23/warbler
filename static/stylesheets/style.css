@@ -32,13 +32,14 @@ body.error-404 {
 }
 
 .navbar a {
-  color: #66757f;
+  color: black;
   font-size: 13px;
   font-weight: bold;
 }
 
 .navbar a:hover {
   color: #1c94e0;
+  text-decoration: none;
 }
 
 .navbar-brand {
@@ -104,34 +105,16 @@ nav form.navbar-form {
 }
 
 /* on "onboarding" pages (signup & login), the navbar is
-   different: no search box, the logo is centered, and it has
-   a background color.
+   different: no search box
  */
-
-.onboarding > .navbar {
-  background-image: url("/static/images/nav-bg.png");
-  background-size: 100% 100%;
-}
-
-.onboarding .navbar-header {
-  margin: 0 auto;
-}
 
 .onboarding .navbar-brand {
   margin: 0;
 }
 
-.onboarding .navbar-brand span {
-  display: none;
-}
-
 .onboarding .nav.navbar-nav.navbar-right {
   position: absolute;
   right: 16px;
-}
-
-.onboarding > .navbar a {
-  color: #fff;
 }
 
 .onboarding > .navbar form.navbar-form {
@@ -396,13 +379,12 @@ p.card-bio {
   width: 100vw;
   left: 0;
   z-index: -1;
-  background-image: url("/static/images/signed-out-home.jpg");
+  background-image: url("/static/images/warbler-hero2.jpg");
   background-size: cover;
   background-position: center center;
   color: #fff;
   text-align: center;
   padding: 1rem;
-  text-shadow: 0 0 8px #66757f;
 }
 
 .home-hero .btn {
@@ -414,16 +396,6 @@ p.card-bio {
 
 .home-hero h1 {
   margin-bottom: 4rem;
-}
-
-.home-hero:before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.3);
 }
 
 /* ============================== Signed in Home */
@@ -467,7 +439,6 @@ p.card-bio {
 
 #user_form input.form-control {
   font-size: 18px;
-  font-weight: bold;
   padding: 12px;
 }
 
