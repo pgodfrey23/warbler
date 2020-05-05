@@ -130,6 +130,13 @@ class User(db.Model):
         found_user_list = [user for user in self.following if user == other_user]
         return len(found_user_list) == 1
 
+    def likes_message(self, message_id):
+        """Does the user like `message_id`? """
+        
+        liked_message_list = [msg for msg in self.likes if msg.id == message_id]
+        return len(liked_message_list) == 1
+            
+
     @classmethod
     def signup(cls, username, email, password, image_url):
         """Sign up user.

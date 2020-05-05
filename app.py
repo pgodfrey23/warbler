@@ -178,6 +178,26 @@ def users_followers(user_id):
     return render_template('users/followers.html', user=user)
 
 
+@app.route('/users/<int:user_id>/likes')
+def show_likes(user_id):
+    """Show list of messages this user likes."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    liked_message_ids = [l.id for l in g.user.likes]
+    messages = (Message
+                .query
+                .filter(Message.id.in_(liked_message_ids))
+                .order_by(Message.timestamp.desc())
+                .limit(100)
+                .all())
+
+    return render_template('users/likes.html', user=user, messages=messages)
+
+
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
 def add_follow(follow_id):
     """Add a follow for the currently-logged-in user."""
@@ -208,6 +228,36 @@ def stop_following(follow_id):
     return redirect(f"/users/{g.user.id}/following")
 
 
+@app.route('/users/add_like/<int:message_id>', methods=['POST'])
+def like_message(message_id):
+    """Processes liked message form user home page."""
+    
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    liked_message = Message.query.get_or_404(message_id)
+    g.user.likes.append(liked_message)
+    db.session.commit()
+
+    return redirect("/")
+
+
+@app.route('/users/remove_like/<int:message_id>', methods=['POST'])
+def unlike_message(message_id):
+    """Processes liked message form user home page."""
+    
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    liked_message = Message.query.get_or_404(message_id)
+    g.user.likes.remove(liked_message)
+    db.session.commit()
+
+    return redirect("/")
+
+
 @app.route('/users/profile', methods=["GET", "POST"])
 def edit_profile():
     """Update profile for current user."""
@@ -223,9 +273,10 @@ def edit_profile():
         if User.authenticate(user.username, form.password.data):
             user.username = form.username.data
             user.email = form.email.data
+            user.location = form.location.data
+            user.bio = form.bio.data
             user.image_url = form.image_url.data or "/static/images/default-pic.png"
             user.header_image_url = form.header_image_url.data or "/static/images/warbler-hero.jpg"
-            user.bio = form.bio.data
 
             db.session.commit()
             return redirect(f"/users/{user.id}")
@@ -305,6 +356,7 @@ def homepage():
     """
 
     if g.user:
+        user = g.user
         following_ids = [f.id for f in g.user.following] + [g.user.id]
 
         messages = (Message
@@ -314,7 +366,7 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', user=user, messages=messages)
 
     else:
         return render_template('home-anon.html')
