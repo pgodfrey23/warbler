@@ -19,6 +19,7 @@
           </div>
 
           <div class="ml-auto" id="likes-container">
+          {% if g.user != user %}
             {% if g.user.likes_message(msg.id) %}
               <form method="POST" action="/users/remove_like/{{ msg.id }}" class="messages-like">
                 <button class="btn btn-small"><i class="fas fa-heart"></i></button>
@@ -28,6 +29,7 @@
                 <button class="btn btn-small"><i class="far fa-heart"></i></button>
               </form>
             {% endif %}
+          {% endif %}
           </div>
         </li>
       {% endfor %}
