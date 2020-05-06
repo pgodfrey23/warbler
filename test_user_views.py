@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Follows, Likes
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -41,6 +41,8 @@ class UserViewTestCase(TestCase):
 
         User.query.delete()
         Message.query.delete()
+        Follows.query.delete()
+        Likes.query.delete()
 
         self.client = app.test_client()
 
@@ -71,26 +73,8 @@ class UserViewTestCase(TestCase):
 
         db.session.rollback()
 
-    def test_signup_view(self):
-        """Does signup page render?"""
-
-        resp = self.client.get("/signup")
-        self.assertEqual(resp.status_code, 200)
-
-        html = resp.get_data(as_text=True)
-        self.assertIn('Join Warbler today', html)
-
-    def test_login_view(self):
-        """Does login page render?"""
-
-        resp = self.client.get("/login")
-        self.assertEqual(resp.status_code, 200)
-
-        html = resp.get_data(as_text=True)
-        self.assertIn('Welcome back', html)   
-
-    def test_view_users(self):
-        """Does users page render?"""
+    def test_view_users_logged_out(self):
+        """Does users page render if not logged in?"""
 
         resp = self.client.get("/users")
         self.assertEqual(resp.status_code, 200)
@@ -109,6 +93,28 @@ class UserViewTestCase(TestCase):
 
             # confirm 'delete message button' renders
             self.assertIn('<i class="far fa-trash-alt">', html)
+    
+    def test_edit_profile_logged_in(self):
+        """Does user's own edit profile page render correctly when logged in?"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+
+            resp = c.get("/users/profile", follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn('Edit Your Profile', html)
+    
+    def test_edit_profile_logged_out(self):
+        """Does user's own edit profile page not render when logged out?"""
+
+        resp = self.client.get("/users/profile", follow_redirects=True)
+
+        html = resp.get_data(as_text=True)
+        self.assertNotIn('Edit Your Profile', html)
+        self.assertIn('You must be logged in to access this page', html)
 
     def test_view_user_profile_logged_in(self):
         """Does user profile page render correctly when logged in?"""
@@ -219,45 +225,150 @@ class UserViewTestCase(TestCase):
     
     def test_follower_user_logged_in(self):
         """Can a user follow another user when logged in?"""
-        
 
-
-    def test_follower_user_logged_out(self):
-        """Is a user prohibited from following another user when logged out?"""
-    
-    # def test_unfollow_user_logged_in(self):
-
-    # def test_unfollow_user_logged_out(self):
-    
-    # def test_like_message_logged_in(self):
-
-    # def test_like_message_logged_out(self):   
-
-    # def test_unlike_message_logged_in(self): 
-    
-    # def test_unlike_message_logged_out(self): 
-
-    def test_edit_profile_logged_in(self):
-        """Does user's own edit profile page render correctly when logged in?"""
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
 
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser1.id
 
-            resp = c.get("/users/profile", follow_redirects=True)
+            self.assertEqual(len(Follows.query.all()), 0)
+
+            resp = c.post(f"/users/follow/{user2.id}", follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+
+            self.assertEqual(len(Follows.query.all()), 1)
+            follow_instance = Follows.query.all()[0]
+
+            self.assertEqual(follow_instance.user_being_followed_id, user2.id)
+            self.assertEqual(follow_instance.user_following_id, self.testuser1.id)
 
             html = resp.get_data(as_text=True)
-            self.assertIn('Edit Your Profile', html)
-    
-    def test_edit_profile_logged_out(self):
-        """Does user's own edit profile page not render when logged out?"""
+            self.assertNotIn('You must be logged in to access this page', html)
 
-        resp = self.client.get("/users/profile", follow_redirects=True)
+    def test_follower_user_logged_out(self):
+        """Is a user prohibited from following another user when logged out?"""
+
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+        self.assertEqual(len(Follows.query.all()), 0)
+
+        resp = self.client.post(f"/users/follow/{user2.id}", follow_redirects=True)
+        self.assertEqual(len(Follows.query.all()), 0)
 
         html = resp.get_data(as_text=True)
-        self.assertNotIn('Edit Your Profile', html)
         self.assertIn('You must be logged in to access this page', html)
     
-    # def test_delete_profile_logged_in(self):
+    def test_unfollow_user_logged_in(self):
+        """Can a user unfollow another user when logged in?"""
 
-    # def test_delete_profile_logged_out(self):
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+
+            self.assertEqual(len(Follows.query.all()), 0)
+
+            # create and confirm following instance
+            resp = c.post(f"/users/follow/{user2.id}", follow_redirects=True)
+            self.assertEqual(len(Follows.query.all()), 1)
+
+            resp = c.post(f"/users/stop-following/{user2.id}", follow_redirects=True)
+            self.assertEqual(len(Follows.query.all()), 0)
+
+            html = resp.get_data(as_text=True)
+            self.assertNotIn('You must be logged in to access this page', html)
+
+
+    def test_unfollow_user_logged_out(self):
+        """Is a user prohibited from unfollowing another user when logged out?"""
+         
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2 = User.query.filter(User.email == "test2@test.com").all()[0]
+
+        user1.following.append(user2)
+        db.session.commit()
+
+        self.assertEqual(len(Follows.query.all()), 1)
+
+        resp = self.client.post(f"/users/stop-following/{user2.id}", follow_redirects=True)
+        self.assertEqual(len(Follows.query.all()), 1)
+
+        html = resp.get_data(as_text=True)
+        self.assertIn('You must be logged in to access this page', html)
+
+    
+    def test_like_message_logged_in(self):
+        """Can a user like another user's message when logged in?"""
+
+        user2_message = Message.query.all()[1]
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+
+            self.assertEqual(len(Likes.query.all()), 0)
+
+            resp = c.post(f"/users/add_like/{user2_message.id}", follow_redirects=True)
+
+            self.assertEqual(len(Likes.query.all()), 1)
+            message_like = Likes.query.all()[0]
+
+            self.assertEqual(message_like.user_id, self.testuser1.id)
+            self.assertEqual(message_like.message_id, user2_message.id)
+
+            html = resp.get_data(as_text=True)
+            self.assertNotIn('You must be logged in to access this page', html)
+
+
+    def test_like_message_logged_out(self):   
+        """Is a user prohibited from liking another user's message when logged out?"""
+
+        user2_message = Message.query.all()[1]
+
+        self.assertEqual(len(Likes.query.all()), 0)
+
+        resp = self.client.post(f"/users/add_like/{user2_message.id}", follow_redirects=True)
+        self.assertEqual(len(Likes.query.all()), 0)
+
+        html = resp.get_data(as_text=True)
+        self.assertIn('You must be logged in to access this page', html)
+
+
+    def test_unlike_message_logged_in(self): 
+        """Can a user unlike another user's message when logged in?"""
+
+        user2_message = Message.query.all()[1]
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+
+            self.assertEqual(len(Likes.query.all()), 0)
+
+            # create and confirm message like
+            resp = c.post(f"/users/add_like/{user2_message.id}", follow_redirects=True)
+            self.assertEqual(len(Likes.query.all()), 1)
+
+            resp = c.post(f"/users/remove_like/{user2_message.id}", follow_redirects=True)
+            self.assertEqual(len(Likes.query.all()), 0)
+
+            html = resp.get_data(as_text=True)
+            self.assertNotIn('You must be logged in to access this page', html)
+    
+    def test_unlike_message_logged_out(self): 
+        """Is a user prohibited from unliking another user's message when logged out?"""
+
+        user1 = User.query.filter(User.email == "test1@test.com").all()[0]
+        user2_message = Message.query.all()[1]
+
+        user1.likes.append(user2_message)
+        db.session.commit()
+
+        self.assertEqual(len(Likes.query.all()), 1)
+
+        resp = self.client.post(f"/users/remove_like/{user2_message.id}", follow_redirects=True)
+        self.assertEqual(len(Likes.query.all()), 1)
+
+        html = resp.get_data(as_text=True)
+        self.assertIn('You must be logged in to access this page', html)
