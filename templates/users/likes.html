@@ -28,6 +28,10 @@
                   <button class="btn btn-small"><i class="far fa-heart"></i></button>
                 </form>
               {% endif %}
+            {% else %}
+              <form method="POST" action="/messages/{{ msg.id }}/delete" class="messages-like">
+                <button class="btn btn-small"><i class="far fa-trash-alt"></i></button>
+              </form>
             {% endif %}
           </div>
         </li>

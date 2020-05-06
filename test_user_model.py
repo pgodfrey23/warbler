@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, User, Message, Follows, Like
+from models import db, User, Message, Follows, Likes
 
 from sqlalchemy.exc import IntegrityError
 
@@ -39,7 +39,7 @@ class UserModelTestCase(TestCase):
         User.query.delete()
         Message.query.delete()
         Follows.query.delete()
-        Like.query.delete()
+        Likes.query.delete()
 
         self.client = app.test_client()
 
@@ -76,9 +76,11 @@ class UserModelTestCase(TestCase):
         db.session.add(u)
         db.session.commit()
 
-        # User should have no messages & no followers
+        # User should have no messages, followers, or likes
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
+        self.assertEqual(len(u.likes), 0)
+
 
     def test_repr(self):
         """Does the repr work."""
@@ -142,7 +144,7 @@ class UserModelTestCase(TestCase):
         message = Message.query.limit(1).all()[0]
 
         # user2 likes message
-        like = Like(user_id=user2.id, message_id=message.id)
+        like = Likes(user_id=user2.id, message_id=message.id)
         db.session.add(like)
         db.session.commit()
 
@@ -169,7 +171,7 @@ class UserModelTestCase(TestCase):
         self.assertFalse(user2.likes_message(message.id))
 
     def test_user_create_success(self):
-        """Test User.signup successfully creates a new user givev valid credentials."""
+        """Test User.signup successfully creates a new user given valid credentials."""
 
         user3 = User.signup(
             email="test3@test.com",
@@ -186,7 +188,7 @@ class UserModelTestCase(TestCase):
         self.assertIn(user, User.query.all())
 
     def test_user_create_fail(self):
-        """Test User.signup fails if validation requirements not met. """
+        """Test User.signup fails if validation requirements not met."""
         with self.assertRaises(IntegrityError):
             User.signup(
                 email="test1@test.com",
@@ -201,6 +203,7 @@ class UserModelTestCase(TestCase):
         """Successfully return a user when given valid username and password."""
 
         unhashed_password = "TEST_PASSWORD"
+        
         user3_signup = User.signup(
             email="test3@test.com",
             username="testuser3",
