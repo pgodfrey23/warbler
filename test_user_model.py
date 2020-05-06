@@ -86,7 +86,7 @@ class UserModelTestCase(TestCase):
         """Does the repr work."""
         user1 = User.query.filter(User.email == "test1@test.com").all()[0]
         user2 = User.query.filter(User.email == "test2@test.com").all()[0]
-        # import pdb; pdb.set_trace()
+        
         self.assertEqual(user1.__repr__(), f"<User #{user1.id}: {user1.username}, {user1.email}>")
         self.assertEqual(user2.__repr__(), f"<User #{user2.id}: {user2.username}, {user2.email}>")
 

@@ -108,14 +108,3 @@ class MessageViewTestCase(TestCase):
         html = resp.get_data(as_text=True)
 
         self.assertIn("Access unauthorized.", html)
-
-
-        # """When you’re logged in, are you prohibited from adding a message as another user?"""
-        # """When you’re logged in, are you prohibited from deleting a message as another user?"""
-        
-
-        # When you’re logged in, can you see the follower / following pages for any user?
-        # When you’re logged out, are you disallowed from visiting a user’s follower / following pages?
-
-        # When you’re logged in, are you prohibiting from adding a message as another user?
-        # When you’re logged in, are you prohibiting from deleting a message as another user?

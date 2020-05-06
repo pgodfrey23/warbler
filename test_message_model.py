@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, User, Message, Follows, Likes
+from models import db, User, Message
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -36,8 +36,6 @@ class MessageModelTestCase(TestCase):
 
         User.query.delete()
         Message.query.delete()
-        Follows.query.delete()
-        Likes.query.delete()
 
         self.client = app.test_client()
 
@@ -47,20 +45,8 @@ class MessageModelTestCase(TestCase):
             password="HASHED_PASSWORD1"
         )
 
-        user2 = User(
-            email="test2@test.com",
-            username="testuser2",
-            password="HASHED_PASSWORD2"
-        )
-
         db.session.add(user1)
-        db.session.add(user2)
         db.session.commit()
-
-        message1 = Message(
-            text="test1_message",
-            user_id=user1.id  
-        )
 
     def tearDown(self):
         """Clean up fouled transactions."""

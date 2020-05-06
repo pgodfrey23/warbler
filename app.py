@@ -159,7 +159,7 @@ def show_following(user_id):
     """Show list of people this user is following."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
@@ -171,7 +171,7 @@ def users_followers(user_id):
     """Show list of followers of this user."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
@@ -183,7 +183,7 @@ def show_likes(user_id):
     """Show list of messages this user likes."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
@@ -203,7 +203,7 @@ def add_follow(follow_id):
     """Add a follow for the currently-logged-in user."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     followed_user = User.query.get_or_404(follow_id)
@@ -218,7 +218,7 @@ def stop_following(follow_id):
     """Have currently-logged-in-user stop following this user."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     followed_user = User.query.get(follow_id)
@@ -233,7 +233,7 @@ def like_message(message_id):
     """Processes liked message form user home page."""
     
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     liked_message = Message.query.get_or_404(message_id)
@@ -248,7 +248,7 @@ def unlike_message(message_id):
     """Processes liked message form user home page."""
     
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     liked_message = Message.query.get_or_404(message_id)
@@ -263,7 +263,7 @@ def edit_profile():
     """Update profile for current user."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     user = g.user
@@ -291,7 +291,7 @@ def delete_user():
     """Delete user."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     do_logout()
@@ -313,7 +313,7 @@ def messages_add():
     """
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     form = MessageForm()
@@ -333,7 +333,7 @@ def messages_destroy(message_id):
     """Delete a message."""
 
     if not g.user:
-        flash("Access unauthorized.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect("/")
 
     msg = Message.query.get(message_id)
