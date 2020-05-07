@@ -187,7 +187,7 @@ def show_likes(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    liked_message_ids = [l.id for l in g.user.likes]
+    liked_message_ids = [l.id for l in user.likes]
     messages = (Message
                 .query
                 .filter(Message.id.in_(liked_message_ids))

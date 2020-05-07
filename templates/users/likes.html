@@ -5,8 +5,8 @@
 
       {% for msg in messages %}
 
-        <li id="{{ msg.id }}" class="list-group-item">
-          <a href="/messages/{{ msg.id }}" class="message-link"/>
+        <li id="{{ msg.id }}" class="list-group-item mb-2">
+          <a href="/messages/{{ msg.id }}" class="message-link">
           <a href="/users/{{ user.id }}">
             <img src="{{ msg.user.image_url }}" alt="user image" class="timeline-image">
           </a>
