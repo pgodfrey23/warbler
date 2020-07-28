@@ -1,8 +1,8 @@
 # Warbler
 
-Warbler is a mock twitter clone built completely as a backend application. Users can sign up/login, follow users, have followers, and create/like messages (tweets). Bcrypt authentication is used to manage user login and Flask sessions store current user data.
+Warbler is a mock twitter clone built entirely as a backend application. Users can sign up/login, follow users, have followers, and create/like messages (tweets). Bcrypt authentication is used to manage user login and Flask sessions store current user data to persist state across requests. Tests are written for views and models using Python Unittest.
 
-The app is built with Flask and Jinja and uses a PostgreSQL database. Tests were written for the views and models using the Python unittest module.
+Utilizes: Python, Flask, SQLAlchemy, WTForms, Bcrypt, Unittest, Jinja, Bootstrap, and PostgreSQL.
 
 Live demo: https://warbler-flask-app.herokuapp.com
 
